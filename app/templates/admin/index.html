@@ -1,0 +1,87 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script>
+    let labels = []
+    let data = []
+
+    {% for s in month_stats %}
+        labels.push({{s[0]}})
+        data.push({{s[1]}})
+    {% endfor %}
+
+    window.onload = function(){
+        billChart(labels, data);
+    }
+</script>
+{% endblock %}
+
+
+{% if current_user.is_authenticated %}
+<h1 class="text-center text-info">TRANG CHỦ QUẢN TRỊ</h1>
+<h1 class="text-center text-danger">THỐNG KÊ DOANH THU</h1>
+<p></p>
+<div class="row">
+    <div class="col-md-5 col-sm-12">
+        <table class="table">
+            <tr>
+                <th>Ngày</th>
+                <th>Số bệnh nhân</th>
+                <th>Doanh thu</th>
+                <th>Tỷ lệ</th>
+            </tr>
+            {% for s in month_stats %}
+            <tr>
+                <td>{{ s[0] }}</td>
+                <td>{{ s[2] }}</td>
+                <td>{{ "{:,.0f}".format(s[1]) }}</td>
+                <td>{{s[3]}}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th>Tổng doanh thu</th>
+                {% for s in total %}
+                    {% if s[0]==none %}
+                        <td>0</td>
+                    {% else %}
+                        <td>{{ "{:,.0f}".format(s[0]) }}</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+    <div class="col-md-7 col-sm-12">
+        <form>
+            <div class="form-group">
+                <input type="number" min="1" max="12" class="form-control" name="month" placeholder="Nhập tháng" />
+            </div>
+            <input type="submit" value="Thống kê" class="btn btn-danger"/>
+        </form>
+        <p></p>
+        <canvas id = "billMonthChart"></canvas>
+    </div>
+</div>
+{% else %}
+<form method="post" action="{{ url_for('admin-login') }}">
+ <h1 class="text-center">Đăng nhập trang quản trị</h1>
+ <div class="form-group">
+  <label for="username">Tên đăng nhập</label>
+  <input type="text" name="username" class="form-control"
+         id="username" placeholder="Nhập tên đăng nhập..." required/>
+ </div>
+ <div class="form-group">
+  <label for="password">Mật khẩu</label>
+  <input type="password"
+         name="password"
+         class="form-control"
+         id="password"
+         placeholder="Nhập mật khẩu..." required/>
+ </div>
+ <input type="submit" value="Đăng nhập" class="btn btn-danger"/>
+</form>
+{% endif %}
+{% endblock %}

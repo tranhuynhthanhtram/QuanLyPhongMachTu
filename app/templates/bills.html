@@ -1,0 +1,115 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Danh sách hóa đơn{% endblock %}
+
+{% block header %}
+    <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+  <!-- Brand -->
+  <a class="navbar-brand" href="#">QUẢN LÝ PHÒNG MẠCH</a>
+
+  <div class="collapse navbar-collapse" id="collapsibleNavbar">
+    <ul class="navbar-nav">
+      {% if current_user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link text-danger" href="{{ url_for('home') }}">
+              {% if current_user.avatar %}
+                <img src="{{ current_user.avatar }}" class="rounded-circle" width="30" alt="{{ current_user.name }}" />
+              {% else %}
+                <img src="{{ url_for('static', filename='images/Logo_Đại_học_Mở_TPHCM.png') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}" />
+              {% endif %}
+              {{ current_user.username }}
+          </a>
+        </li>
+      <li class="nav-item">
+          <a class="nav-link text-success" href="{{ url_for('bills-staff') }}">Danh sách hóa đơn</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link text-success" href="{{ url_for('staff-logout') }}">Đăng xuất</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link text-success" href="{{ url_for('staff-login') }}">Đăng nhập</a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+
+    <!-- Toggler/collapsibe Button -->
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+</nav>
+
+
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/bills.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+<h1 class="text-center"> Danh sách hóa đơn </h1>
+<p></p>
+    <div class="container">
+        <form method="post" action="{{url_for('bills-staff')}}">
+            <div class="form-group">
+                <input type="text" placeholder="Nhập mã đơn thuốc" name="medicine_bill_id"class="form-control"/>
+            </div>
+            <input type="submit" value="Tìm" />
+        </form>
+    </div>
+<p></p>
+    <div class="table container">
+        <table class="table">
+            <tr>
+                <th>Mã HĐ</th>
+                <th>Họ tên</th>
+                <th>Ngày khám</th>
+                <th>Tiền khám</th>
+                <th>Tiền thuốc</th>
+                <th>Tổng cộng</th>
+                <th>Trạng thái</th>
+            </tr>
+            {% for b in bills %}
+            <tr class="bills">
+                <td>{{ b.id}}</td>
+                <td>{{ b.fullname }}</td>
+                <td>{{ b.examined_date }}</td>
+                <td>{{ "{:,.0f}".format(b.medical_costs) }}</td>
+                <td>{{ "{:,.0f}".format(b.drug_money) }}</td>
+                <td>{{ "{:,.0f}".format(b.drug_money + b.medical_costs) }}</td>
+                {% if b.state_pay %}
+                <td><p style="color: black;">Đã thanh toán</p></td>
+                {% else %}
+                <td>
+                    <input type="button" class="btn btn-danger" value="Thanh toán" onclick="pay({{b.id}})">
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% else %}
+<div class="container">
+        <h1 class="text-center">Đăng nhập</h1>
+        {% if err_msg %}
+        <h4 class="alter alter-danger">Error: {{err_msg}}</h4>
+        {% endif %}
+
+        <form method="post" action="{{url_for('staff-login')}}">
+             <div class="form-group">
+                <label for="username">Tên đăng nhập</label>
+                <input type="text" name="username" required id="username" class="form-control"/>
+            </div>
+             <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" name="password" required id="password" class="form-control"/>
+             </div>
+            <input type="submit" value="Đăng nhập" class="btn btn-success" />
+        </form>
+</div>
+{% endif %}
+
+{% endblock %}

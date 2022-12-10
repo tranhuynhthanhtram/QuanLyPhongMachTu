@@ -1,0 +1,168 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Phiếu khám{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}
+
+
+{% block header %}
+<nav class="navbar navbar-expand-md bg-dark navbar-dark">
+    <!-- Brand -->
+    <a class="navbar-brand" href="#">QUẢN LÝ PHÒNG MẠCH</a>
+
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+        <ul class="navbar-nav">
+            {% if current_user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="{{ url_for('home') }}">
+                    {% if current_user.avatar %}
+                    <img src="{{ current_user.avatar }}" class="rounded-circle" width="30"
+                         alt="{{ current_user.name }}"/>
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/Logo_Đại_học_Mở_TPHCM.png') }}"
+                         class="rounded-circle" width="30" alt="{{ current_user.name }}"/>
+                    {% endif %}
+                    {{ current_user.username }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-success" href="{{ url_for('doctor-logout') }}">Đăng xuất</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link text-success" href="{{ url_for('doctor-login') }}">Đăng nhập</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Toggler/collapsibe Button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</nav>
+
+
+{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="container">
+            <h1 class="text-center">Lập phiếu khám</h1>
+            {% if err_msg %}
+            <h1 class="text-danger">Bị Lỗi: {{ err_msg}}</h1>
+            {% else %}
+            <h1 class="text-info">{{ msg_success }}</h1>
+            {% endif %}
+            <form method="post" action="{{url_for('add-phieu-kham')}}">
+                <div class="form-group">
+                    <label for="name">Họ tên</label>
+                    <input type="text" name="name" required id="name" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <!--            <label for="medical_examination">Ngày khám</label>-->
+                    <!--            <input type="date" name="medical_examination" required id="medical_examination" class="form-control"/>-->
+                    <label for="NgayKham">Ngày khám</label>
+                    <input type="date" name="NgayKham" required id="NgayKham" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label for="symptom">Triệu chứng</label>
+                    <input type="text" name="symptom" required id="symptom" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label for="prognostication">Dự đoán loại bệnh</label>
+                    <input type="text" name="prognostication" required id="prognostication" class="form-control"/>
+                </div>
+
+                <table class="table">
+                    <tr>
+                        <td>Thuốc</td>
+                        <td>Đơn vị</td>
+                        <td>Cách dùng</td>
+                        <td>Số lượng</td>
+                    </tr>
+
+                    {% for i in range(30) %}
+                    <tr>
+                        <td>
+                            <select class="medicine" onchange="addToCart({{ i }})">
+                                <option value="0">Select</option>
+                                {% for m in medicine %}
+                                <option value="{{m.id}}" name="tenThuoc" id="cart{{m.id}}">{{ m.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="unit"></td>
+                        <td>
+                            <div class="how_to_use"></div>
+                        </td>
+
+                        <td>
+                            <div class="form-group">
+                                <input class="form-control" type="number" value="1" name="quantity" min="1"
+                                       onblur="updateQuantity({{i}}, this)"
+                                       style="width:100px"/>
+                            </div>
+                        </td>
+                        <!--                <td>-->
+                        <!--                    <input class="btn btn-danger" value="Xóa" type="button" onclick="deleteMedicineCart({{i}})"/>-->
+                        <!--                </td>-->
+                    </tr>
+                    {% endfor %}
+                </table>
+                <input type="submit" value="Lưu phiếu" class="btn btn-danger" onclick="saveMedicalBill()"/>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <form methods='post' action="{{ url_for('add-phieu-kham') }}">
+            <div class="container">
+                <h1 class="text-center">Thuốc đã kê toa cho bệnh nhân</h1>
+                <div class="form-group">
+                    <label for="fullname">Tên bệnh nhân</label>
+                    <input type="text" name="fullname" id="fullname" class="form-control" onblur="searchMedicalHistory()"/>
+                </div>
+                <p></p>
+                <table class="table">
+                    <tr>
+                        <th>Tên thuốc</th>
+                        <th>Số lượng</th>
+                    </tr>
+                    {%for i in range(30)%}
+                    <tr>
+                        <td class="name"></td>
+                        <td class="quantity"></td>
+                    </tr>
+                    {%endfor%}
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="container">
+    <h1 class="text-center">Đăng nhập</h1>
+    {% if err_msg %}
+    <h4 class="alter alter-danger">Error: {{err_msg}}</h4>
+    {% endif %}
+
+    <form method="post" action="{{url_for('doctor-login')}}">
+        <div class="form-group">
+            <label for="username">Tên đăng nhập</label>
+            <input type="text" name="username" required id="username" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <input type="password" name="password" required id="password" class="form-control"/>
+        </div>
+        <input type="submit" value="Đăng nhập" class="btn btn-success"/>
+    </form>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'admin/base.html' %}
+
+{% block body %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+<script>
+    let labels = []
+    let data = []
+
+    {% for s in medi_month_stats %}
+        labels.push({{s[0]}})
+        data.push({{s[3]}})
+    {% endfor %}
+
+    window.onload = function(){
+        mediChart(labels, data);
+    }
+</script>
+{% endblock %}
+
+<h1 class="text-center text-danger">THỐNG KÊ TẦN SUẤT SỬ DỤNG THUỐC</h1>
+
+<div class="row">
+    <div class="col-md-5 col-xs-12">
+        <table class="table">
+            <tr>
+                <th>Mã thuốc</th>
+                <th>Tên thuốc</th>
+                <th>Đơn vị tính</th>
+                <th>Số lần dùng</th>
+            </tr>
+            {% for s in medi_month_stats %}
+            <tr>
+                <td>{{s[0]}}</td>
+                <td>{{ s[1] }}</td>
+                <td>{{ s[2] }}</td>
+                <td>{{ s[3] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="col-md-5 col-xs-12">
+        <form>
+            <div class="form-group">
+                <input type="number" min="1" max="12" class="form-control" name="month" placeholder="Nhập tháng" />
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" name="kw" placeholder="Nhập tên thuốc" />
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" name="id" placeholder="Nhập mã thuốc" />
+            </div>
+            <input type="submit" value="Thống kê" class="btn btn-danger"/>
+        </form>
+        <canvas id = "mediChart"></canvas>
+    </div>
+</div>
+{% endblock %}
